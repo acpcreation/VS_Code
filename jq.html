@@ -1,0 +1,42 @@
+{% assign security_critical = data.policyAlerts | where: "threatLevel", 10 | uniq: "id" %}
+
+{% if check.passed %}
+### Check passed
+🎉  Congratulations! **No** Critical vulnerabilities found in **{{ data.application.name }}**!  🎉
+{% else %}
+### Check failed
+Uh-Oh! {{data.applicationEvaluation.criticalComponentCount}} Vulnerabilities Detected.
+
+<details>
+<summary>Policy Violations</summary>
+<br />
+<table style="color: black;">
+<thead style="background-color: #fff; text-align: center; white-space: nowrap;">
+<td><b>Threat</b></td>
+<td><b>Policy</b></td>
+<td><b>Component</b></td>
+<td><b>Summary</b></td>
+</thead>
+<tbody>
+{% for violation in data.policyAlerts %}
+{% if violation.threatLevel >= 7 %}
+<tr style="background-color: #ff0015;">
+{% elsif violation.threatLevel >= 4 and violation.threatLevel < 7 %}
+<tr style="background-color: #F4861D;">
+{% elsif violation.threatLevel >= 0 and violation.threatLevel < 4 %}
+<tr style="background-color: #F5C648;">
+{% else %}
+<tr style="background-color: #48dbf5;">
+{% endif %}
+
+<td style="text-align: center;">{{ violation.threatLevel}}</td>
+<td style="text-align: center;">{{ violation.policyName}}</td>
+<td>{{ violation.componentFacts[0].displayName }}</td>
+<td>{{ violation.componentFacts[0].constraintFacts[0].satisfiedConditions[0].reason }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</details>
+{% endif %}
+Policy Evaluation Completed by Your Friendly Neighborhood IQ Server see here for full report <a target="_blank" href="">Nexus IQ Report **{{data.applicationEvaluation.application.name}}**</a>
